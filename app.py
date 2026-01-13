@@ -18,17 +18,21 @@ def load_model():
     Load the pre-trained image captioning model, processor, and tokenizer.
     This function is cached to avoid reloading the model on every interaction.
     """
-    model_name = "nlpconnect/vit-gpt2-image-captioning"
-    
-    model = VisionEncoderDecoderModel.from_pretrained(model_name)
-    processor = ViTImageProcessor.from_pretrained(model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    
-    # Set device (CPU or GPU)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-    
-    return model, processor, tokenizer, device
+    try:
+        model_name = "nlpconnect/vit-gpt2-image-captioning"
+        
+        model = VisionEncoderDecoderModel.from_pretrained(model_name)
+        processor = ViTImageProcessor.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        
+        # Force CPU for Streamlit Cloud compatibility
+        device = torch.device("cpu")
+        model.to(device)
+        
+        return model, processor, tokenizer, device
+    except Exception as e:
+        st.error(f"Error loading model: {str(e)}")
+        st.stop()
 
 def generate_caption(image, model, processor, tokenizer, device):
     """
